@@ -9,18 +9,11 @@ Neurobooth-os Documentation
 Tables (:py:mod:`neurobooth_os.netcomm`):
 ------------------------------------------------
 
+
 .. currentmodule:: neurobooth_os.netcomm
 
 .. autosummary::
    :toctree: generated/
 
    get_client_messages
-
-
-.. currentmodule:: neurobooth_os.netcomm.client
-
-.. autosummary::
-   :toctree: generated/
-
    start_server
-
