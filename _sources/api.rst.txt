@@ -17,3 +17,11 @@ Tables (:py:mod:`neurobooth_os.netcomm`):
    client.start_server
    get_client_messages
 
+
+.. currentmodule:: neurobooth_os.netcomm.client
+
+.. autosummary::
+   :toctree: generated/
+
+   start_server
+
