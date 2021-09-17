@@ -14,7 +14,6 @@ Tables (:py:mod:`neurobooth_os.netcomm`):
 .. autosummary::
    :toctree: generated/
 
-   client.start_server
    get_client_messages
 
 
