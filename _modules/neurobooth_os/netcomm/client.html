@@ -215,18 +215,18 @@
                 <span class="k">return</span> <span class="s2">&quot;TIMED-OUT_-999&quot;</span>
 
 
-<div class="viewcode-block" id="start_server"><a class="viewcode-back" href="../../../generated/neurobooth_os.netcomm.start_server.html#neurobooth_os.netcomm.start_server">[docs]</a><span class="k">def</span> <span class="nf">start_server</span><span class="p">(</span><span class="n">node_name</span><span class="p">,</span> <span class="n">save_pid_txt</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Makes a network call to run python script serv_{node}.py</span>
+<div class="viewcode-block" id="start_server"><a class="viewcode-back" href="../../../generated/neurobooth_os.netcomm.client.start_server.html#neurobooth_os.netcomm.client.start_server">[docs]</a><span class="k">def</span> <span class="nf">start_server</span><span class="p">(</span><span class="n">node_name</span><span class="p">,</span> <span class="n">save_pid_txt</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Makes a network call to run script serv_{node_name}.bat</span>
 
 <span class="sd">    First remote processes are logged, then a scheduled task is created to run</span>
 <span class="sd">    the remote batch file, then task runs, and new python PIDs are captured with</span>
 <span class="sd">    the option to save to save_pid_txt. If saved, when the function is called it</span>
 <span class="sd">    will kill the PIDs in the file. </span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    node_name : str</span>
-<span class="sd">        PC node name defined in `secrets`</span>
+<span class="sd">        PC node name defined in `secrets_info.secrets`</span>
 <span class="sd">    save_pid_txt : bool</span>
 <span class="sd">        Option to save PID to file for killing PID in the future.</span>
 

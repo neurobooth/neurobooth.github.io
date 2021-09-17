@@ -1,0 +1,6 @@
+﻿neurobooth\_os.netcomm.client.start\_server
+===========================================
+
+.. currentmodule:: neurobooth_os.netcomm.client
+
+.. autofunction:: start_server
