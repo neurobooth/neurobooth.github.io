@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>neurobooth_os.netcomm.get_client_messages &#8212; neurobooth-os  documentation</title>
+    <title>neurobooth_os.netcomm.get_fprint &#8212; neurobooth-os  documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/bootstrap-sphinx.css" />
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
@@ -66,7 +66,7 @@
   <ul class="dropdown-menu localtoc"
       role="menu"
       aria-labelledby="dLabelLocalToc"><ul>
-<li><a class="reference internal" href="#">neurobooth_os.netcomm.get_client_messages</a></li>
+<li><a class="reference internal" href="#">neurobooth_os.netcomm.get_fprint</a></li>
 </ul>
 </ul>
 </li>
@@ -78,7 +78,7 @@
             
               <li class="hidden-sm">
 <div id="sourcelink">
-  <a href="../_sources/generated/neurobooth_os.netcomm.get_client_messages.rst.txt"
+  <a href="../_sources/generated/neurobooth_os.netcomm.get_fprint.rst.txt"
      rel="nofollow">Source</a>
 </div></li>
             
@@ -102,28 +102,27 @@
   <div class="row">
     <div class="body col-md-12 content" role="main">
       
-  <section id="neurobooth-os-netcomm-get-client-messages">
-<h1>neurobooth_os.netcomm.get_client_messages<a class="headerlink" href="#neurobooth-os-netcomm-get-client-messages" title="Permalink to this headline">¶</a></h1>
+  <section id="neurobooth-os-netcomm-get-fprint">
+<h1>neurobooth_os.netcomm.get_fprint<a class="headerlink" href="#neurobooth-os-netcomm-get-fprint" title="Permalink to this headline">¶</a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="neurobooth_os.netcomm.get_client_messages">
-<span class="sig-prename descclassname"><span class="pre">neurobooth_os.netcomm.</span></span><span class="sig-name descname"><span class="pre">get_client_messages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fprint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">old_stdout</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">12347</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">host</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'localhost'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/neurobooth_os/netcomm/server.html#get_client_messages"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#neurobooth_os.netcomm.get_client_messages" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create socket server and get messages from clients.</p>
+<dt class="sig sig-object py" id="neurobooth_os.netcomm.get_fprint">
+<span class="sig-prename descclassname"><span class="pre">neurobooth_os.netcomm.</span></span><span class="sig-name descname"><span class="pre">get_fprint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current_node</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_node</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'control'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/neurobooth_os/netcomm/server.html#get_fprint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#neurobooth_os.netcomm.get_fprint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return function to capture prints for sending to target_node.py</p>
+<p>Stdout is re-routed to target_node via socket connection.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>s1</strong><span class="classifier">instance of socket.Socket</span></dt><dd><p>The socket object</p>
+<dt><strong>current_node</strong><span class="classifier">str</span></dt><dd><p>Name of the node to be displayed, e.g. STM or ACQ</p>
 </dd>
-<dt><strong>fprint</strong><span class="classifier">callable</span></dt><dd><p>function for printing, e.g. fprint from <a class="reference internal" href="neurobooth_os.netcomm.get_fprint.html#neurobooth_os.netcomm.get_fprint" title="neurobooth_os.netcomm.get_fprint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_fprint</span></code></a></p>
-</dd>
-<dt><strong>port</strong><span class="classifier">int</span></dt><dd><p>The port</p>
-</dd>
-<dt><strong>host</strong><span class="classifier">str</span></dt><dd><p>The host. E.g., STM and ACQ</p>
+<dt><strong>target_node</strong><span class="classifier">str</span></dt><dd><p>PC node name defined in <em class="xref py py-obj">secrets_info.secrets</em></p>
 </dd>
 </dl>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><dl class="simple">
-<dt><strong>data</strong><span class="classifier">str</span></dt><dd><p>Yields the data.</p>
+<dt><strong>fprint_flush</strong><span class="classifier">callable</span></dt><dd><p>Print function that send message via socket to target_node.</p>
+</dd>
+<dt><strong>old_stdout</strong><span class="classifier">object</span></dt><dd><p>original Stdout before re-routing.</p>
 </dd>
 </dl>
 </dd>

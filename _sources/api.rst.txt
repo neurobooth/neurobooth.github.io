@@ -15,5 +15,7 @@ Tables (:py:mod:`neurobooth_os.netcomm`):
 .. autosummary::
    :toctree: generated/
 
-   get_client_messages
    start_server
+   get_client_messages
+   get_fprint
+   
