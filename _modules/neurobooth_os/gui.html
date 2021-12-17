@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>neurobooth_os.gui &#8212; neurobooth-os  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/bootstrap-sphinx.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script type="text/javascript" src="../../_static/js/jquery-1.11.0.min.js "></script>
+<script type="text/javascript" src="../../_static/js/jquery-fix.js "></script>
+<script type="text/javascript" src="../../_static/bootstrap-3.3.7/js/bootstrap.min.js "></script>
+<script type="text/javascript" src="../../_static/bootstrap-sphinx.js "></script>
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../../index.html">
+          neurobooth-os</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.1.dev0</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+                <li><a href="../../api.html">API</a></li>
+                <li><a href="https://github.com/neurobooth/neurobooth-os">GitHub</a></li>
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../../index.html">Site <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"></ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"></ul>
+</li>
+              
+            
+            
+            
+            
+            
+              <li class="hidden-sm"></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+    <div class="body col-md-12 content" role="main">
+      
+  <h1>Source code for neurobooth_os.gui</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Fri Apr  2 08:01:51 2021</span>
+
+<span class="sd">@author: neurobooth</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionParser</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+
+<span class="kn">import</span> <span class="nn">PySimpleGUI</span> <span class="k">as</span> <span class="nn">sg</span>
+<span class="kn">import</span> <span class="nn">liesl</span>
+
+<span class="kn">import</span> <span class="nn">neurobooth_os.main_control_rec</span> <span class="k">as</span> <span class="nn">ctr_rec</span>
+<span class="kn">from</span> <span class="nn">neurobooth_os.realtime.lsl_plotter</span> <span class="kn">import</span> <span class="n">create_lsl_inlets</span><span class="p">,</span> <span class="n">stream_plotter</span>
+<span class="kn">from</span> <span class="nn">neurobooth_os.netcomm</span> <span class="kn">import</span> <span class="n">get_messages_to_ctr</span><span class="p">,</span> <span class="n">node_info</span><span class="p">,</span> <span class="n">NewStdout</span>
+<span class="kn">from</span> <span class="nn">neurobooth_os.layouts</span> <span class="kn">import</span> <span class="n">_main_layout</span><span class="p">,</span> <span class="n">_win_gen</span><span class="p">,</span> <span class="n">_init_layout</span><span class="p">,</span> <span class="n">write_task_notes</span>
+<span class="kn">import</span> <span class="nn">neurobooth_os.iout.metadator</span> <span class="k">as</span> <span class="nn">meta</span>
+<span class="kn">from</span> <span class="nn">neurobooth_os.iout.split_xdf</span> <span class="kn">import</span> <span class="n">split_sens_files</span><span class="p">,</span> <span class="n">get_xdf_name</span>
+<span class="kn">from</span> <span class="nn">neurobooth_os.iout</span> <span class="kn">import</span> <span class="n">marker_stream</span>
+<span class="kn">import</span> <span class="nn">neurobooth_os.config</span> <span class="k">as</span> <span class="nn">cfg</span>
+
+<span class="k">def</span> <span class="nf">_process_received_data</span><span class="p">(</span><span class="n">serv_data</span><span class="p">,</span> <span class="n">window</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Gets string data from other servers and create PySimpleGui window events.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    serv_data : str</span>
+<span class="sd">        Data sent by other servers</span>
+<span class="sd">    window : object</span>
+<span class="sd">        PySimpleGui window object</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c1"># Split server name and data</span>
+    <span class="n">serv_data</span> <span class="o">=</span> <span class="n">serv_data</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:::&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">data_row</span> <span class="ow">in</span> <span class="n">serv_data</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="s2">&quot;-OUTLETID-&quot;</span> <span class="ow">in</span> <span class="n">data_row</span><span class="p">:</span>
+            <span class="c1"># -OUTLETID-:outlet_name:uuid</span>
+            <span class="n">evnt</span><span class="p">,</span> <span class="n">outlet_name</span><span class="p">,</span> <span class="n">outlet_id</span> <span class="o">=</span> <span class="n">data_row</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
+            <span class="n">window</span><span class="o">.</span><span class="n">write_event_value</span><span class="p">(</span><span class="s1">&#39;-OUTLETID-&#39;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;[&#39;</span><span class="si">{</span><span class="n">outlet_name</span><span class="si">}</span><span class="s2">&#39;, &#39;</span><span class="si">{</span><span class="n">outlet_id</span><span class="si">}</span><span class="s2">&#39;]&quot;</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="s2">&quot;UPDATOR:&quot;</span> <span class="ow">in</span> <span class="n">data_row</span><span class="p">:</span>
+            <span class="c1"># UPDATOR:-elem_key-</span>
+            <span class="n">elem</span> <span class="o">=</span> <span class="n">data_row</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">window</span><span class="o">.</span><span class="n">write_event_value</span><span class="p">(</span><span class="s1">&#39;-update_butt-&#39;</span><span class="p">,</span> <span class="n">elem</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="s2">&quot;Initiating task:&quot;</span> <span class="ow">in</span> <span class="n">data_row</span><span class="p">:</span>
+            <span class="c1"># Initiating task:task_id:obs_id:tech_obs_log_id:tsk_strt_time</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">task_id</span><span class="p">,</span> <span class="n">obs_id</span><span class="p">,</span> <span class="n">obs_log_id</span><span class="p">,</span> <span class="n">tsk_strt_time</span> <span class="o">=</span> <span class="n">data_row</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
+            <span class="n">window</span><span class="o">.</span><span class="n">write_event_value</span><span class="p">(</span><span class="s1">&#39;task_initiated&#39;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;[&#39;</span><span class="si">{</span><span class="n">task_id</span><span class="si">}</span><span class="s2">&#39;, &#39;</span><span class="si">{</span><span class="n">obs_id</span><span class="si">}</span><span class="s2">&#39;, &#39;</span><span class="si">{</span><span class="n">obs_log_id</span><span class="si">}</span><span class="s2">&#39;, &#39;</span><span class="si">{</span><span class="n">tsk_strt_time</span><span class="si">}</span><span class="s2">&#39;]&quot;</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="s2">&quot;Finished task:&quot;</span> <span class="ow">in</span> <span class="n">data_row</span><span class="p">:</span>
+            <span class="c1"># Finished task: task_id</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">task_id</span> <span class="o">=</span> <span class="n">data_row</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
+            <span class="n">window</span><span class="o">.</span><span class="n">write_event_value</span><span class="p">(</span><span class="s1">&#39;task_finished&#39;</span><span class="p">,</span> <span class="n">task_id</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="s2">&quot;-new_filename-&quot;</span> <span class="ow">in</span> <span class="n">data_row</span><span class="p">:</span>
+            <span class="c1"># new file created, data_row = &quot;-new_filename-:stream_name:video_filename&quot;</span>
+            <span class="n">event</span><span class="p">,</span> <span class="n">stream_name</span><span class="p">,</span> <span class="n">filename</span> <span class="o">=</span> <span class="n">data_row</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
+            <span class="n">window</span><span class="o">.</span><span class="n">write_event_value</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">stream_name</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">]&quot;</span><span class="p">)</span>
+            
+
+<div class="viewcode-block" id="gui"><a class="viewcode-back" href="../../generated/neurobooth_os.gui.gui.html#neurobooth_os.gui.gui">[docs]</a><span class="k">def</span> <span class="nf">gui</span><span class="p">(</span><span class="n">remote</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">database</span><span class="o">=</span><span class="s1">&#39;neurobooth&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Start the Graphical User Interface.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    remote : bool</span>
+<span class="sd">        If True, uses ssh_tunnel to connect and database = mock_neurobooth</span>
+<span class="sd">        to the database. Use False if on site.</span>
+<span class="sd">    database : str</span>
+<span class="sd">        The database name</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="n">remote</span><span class="p">:</span>
+        <span class="n">database</span> <span class="o">=</span> <span class="s2">&quot;mock_neurobooth&quot;</span>
+        <span class="n">nodes</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;dummy_acq&#39;</span><span class="p">,</span> <span class="s1">&#39;dummy_stm&#39;</span><span class="p">)</span>
+        <span class="n">host_ctr</span><span class="p">,</span> <span class="n">port_ctr</span> <span class="o">=</span> <span class="n">node_info</span><span class="p">(</span><span class="s2">&quot;dummy_ctr&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">nodes</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;acquisition&#39;</span><span class="p">,</span> <span class="s1">&#39;presentation&#39;</span><span class="p">)</span>
+        <span class="n">host_ctr</span><span class="p">,</span> <span class="n">port_ctr</span> <span class="o">=</span> <span class="n">node_info</span><span class="p">(</span><span class="s2">&quot;control&quot;</span><span class="p">)</span>
+
+    <span class="n">conn</span> <span class="o">=</span> <span class="n">meta</span><span class="o">.</span><span class="n">get_conn</span><span class="p">(</span><span class="n">remote</span><span class="o">=</span><span class="n">remote</span><span class="p">,</span> <span class="n">database</span><span class="o">=</span><span class="n">database</span><span class="p">)</span>
+    <span class="n">window</span> <span class="o">=</span> <span class="n">_win_gen</span><span class="p">(</span><span class="n">_init_layout</span><span class="p">,</span> <span class="n">conn</span><span class="p">)</span>
+
+    <span class="n">plttr</span> <span class="o">=</span> <span class="n">stream_plotter</span><span class="p">()</span>
+    <span class="n">tech_obs_log</span> <span class="o">=</span> <span class="n">meta</span><span class="o">.</span><span class="n">_new_tech_log_dict</span><span class="p">()</span>
+    <span class="n">stream_ids</span><span class="p">,</span> <span class="n">inlets</span> <span class="o">=</span> <span class="p">{},</span> <span class="p">{}</span>
+    <span class="n">plot_elem</span><span class="p">,</span> <span class="n">inlet_keys</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+    
+    <span class="c1"># Create variables for out dict </span>
+    <span class="n">subject_id_date</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">exit_flag</span><span class="o">=</span><span class="kc">None</span>  <span class="c1"># where to break</span>
+    <span class="n">break_</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># break loop if True                </span>
+    <span class="n">obs_log_id</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">t_obs_id</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">task_id</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">rec_fname</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="c1"># lsl file name</span>
+    <span class="n">session</span> <span class="o">=</span> <span class="kc">None</span>    
+    <span class="n">vidf_mrkr</span> <span class="o">=</span> <span class="kc">None</span>
+            
+    <span class="n">statecolors</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;-init_servs-&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;green&quot;</span><span class="p">,</span> <span class="s2">&quot;yellow&quot;</span><span class="p">],</span>
+                   <span class="s2">&quot;-Connect-&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;green&quot;</span><span class="p">,</span> <span class="s2">&quot;yellow&quot;</span><span class="p">],</span>
+                   <span class="p">}</span>
+    <span class="n">steps</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># keep track of steps done</span>
+    <span class="n">event</span><span class="p">,</span> <span class="n">values</span> <span class="o">=</span> <span class="n">window</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mf">.1</span><span class="p">)</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">event</span><span class="p">,</span> <span class="n">values</span> <span class="o">=</span> <span class="n">window</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mf">.5</span><span class="p">)</span>
+        
+        <span class="c1">############################################################</span>
+        <span class="c1"># Initial Window -&gt; Select subject, study and tasks </span>
+        <span class="c1">############################################################</span>
+        <span class="k">if</span> <span class="n">event</span> <span class="o">==</span> <span class="s2">&quot;study_id&quot;</span><span class="p">:</span>
+            <span class="n">study_id</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">event</span><span class="p">]</span>
+            <span class="n">tech_obs_log</span><span class="p">[</span><span class="s2">&quot;study_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">study_id</span>
+            <span class="n">collection_ids</span> <span class="o">=</span> <span class="n">meta</span><span class="o">.</span><span class="n">get_collection_ids</span><span class="p">(</span><span class="n">study_id</span><span class="p">,</span> <span class="n">conn</span><span class="p">)</span>
+            <span class="n">window</span><span class="p">[</span><span class="s2">&quot;collection_id&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="n">collection_ids</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">event</span> <span class="o">==</span> <span class="s1">&#39;find_subject&#39;</span><span class="p">:</span>
+            <span class="n">subject_df</span> <span class="o">=</span> <span class="n">meta</span><span class="o">.</span><span class="n">get_subject_ids</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">values</span><span class="p">[</span><span class="s1">&#39;first_name&#39;</span><span class="p">],</span>
+                                              <span class="n">values</span><span class="p">[</span><span class="s1">&#39;last_name&#39;</span><span class="p">])</span>
+            <span class="n">window</span><span class="p">[</span><span class="s1">&#39;dob&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="n">subject_df</span><span class="p">[</span><span class="s1">&#39;date_of_birth&#39;</span><span class="p">])</span>
+
+        <span class="k">elif</span> <span class="n">event</span> <span class="o">==</span> <span class="s1">&#39;select_subject&#39;</span><span class="p">:</span>
+            <span class="n">subject</span> <span class="o">=</span> <span class="n">subject_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">window</span><span class="p">[</span><span class="s1">&#39;dob&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get_indexes</span><span class="p">()]</span>
+            <span class="n">subject_id</span> <span class="o">=</span> <span class="n">subject</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">first_name</span> <span class="o">=</span> <span class="n">subject</span><span class="p">[</span><span class="s1">&#39;first_name_birth&#39;</span><span class="p">]</span>
+            <span class="n">last_name</span> <span class="o">=</span> <span class="n">subject</span><span class="p">[</span><span class="s1">&#39;last_name_birth&#39;</span><span class="p">]</span>
+            <span class="n">window</span><span class="p">[</span><span class="s1">&#39;dob&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;Subject ID: </span><span class="si">{</span><span class="n">subject_id</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">])</span>
+            <span class="n">window</span><span class="p">[</span><span class="s1">&#39;first_name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">disabled</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">window</span><span class="p">[</span><span class="s1">&#39;last_name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">disabled</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">event</span> <span class="o">==</span> <span class="s2">&quot;collection_id&quot;</span><span class="p">:</span>
+            <span class="n">collection_id</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">event</span><span class="p">]</span>
+            <span class="n">tech_obs_log</span><span class="p">[</span><span class="s2">&quot;collection_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">collection_id</span>
+            <span class="n">tasks_obs</span> <span class="o">=</span> <span class="n">meta</span><span class="o">.</span><span class="n">get_tasks</span><span class="p">(</span><span class="n">collection_id</span><span class="p">,</span> <span class="n">conn</span><span class="p">)</span>
+            <span class="n">task_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">tasks_obs</span><span class="p">:</span>
+                <span class="n">task_id</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span> <span class="o">=</span> <span class="n">meta</span><span class="o">.</span><span class="n">_get_task_param</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">conn</span><span class="p">)</span>
+                <span class="n">task_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">task_id</span><span class="p">)</span>
+            <span class="n">window</span><span class="p">[</span><span class="s2">&quot;_tasks_&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">task_list</span><span class="p">))</span>
+
+        <span class="k">elif</span> <span class="n">event</span> <span class="o">==</span> <span class="s2">&quot;_init_sess_save_&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;_tasks_&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+                <span class="n">sg</span><span class="o">.</span><span class="n">PopupError</span><span class="p">(</span><span class="s1">&#39;No task combo&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sess_info</span> <span class="o">=</span> <span class="n">values</span>
+                <span class="n">sess_info</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;subject_id&#39;</span><span class="p">:</span> <span class="n">subject_id</span><span class="p">,</span>
+                                  <span class="s1">&#39;first_name&#39;</span><span class="p">:</span> <span class="n">first_name</span><span class="p">,</span> <span class="s1">&#39;last_name&#39;</span><span class="p">:</span> <span class="n">last_name</span><span class="p">})</span>
+                <span class="n">staff_id</span> <span class="o">=</span> <span class="n">sess_info</span><span class="p">[</span><span class="s1">&#39;staff_id&#39;</span><span class="p">]</span>
+                <span class="n">tech_obs_log</span><span class="p">[</span><span class="s2">&quot;staff_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sess_info</span><span class="p">[</span><span class="s1">&#39;staff_id&#39;</span><span class="p">]</span>
+                <span class="n">tech_obs_log</span><span class="p">[</span><span class="s2">&quot;subject_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sess_info</span><span class="p">[</span><span class="s1">&#39;subject_id&#39;</span><span class="p">]</span>
+                <span class="n">tech_obs_log</span><span class="p">[</span><span class="s2">&quot;study_id-date&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">subject_id</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span>
+                <span class="n">subject_id_date</span> <span class="o">=</span> <span class="n">tech_obs_log</span><span class="p">[</span><span class="s2">&quot;study_id-date&quot;</span><span class="p">]</span>
+                
+                <span class="n">window</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="c1"># Open new layout with main window</span>
+                <span class="n">window</span> <span class="o">=</span> <span class="n">_win_gen</span><span class="p">(</span><span class="n">_main_layout</span><span class="p">,</span> <span class="n">sess_info</span><span class="p">,</span> <span class="n">remote</span><span class="p">)</span>
+
+                <span class="c1"># Start a threaded socket CTR server once main window generated</span>
+                <span class="n">callback_args</span> <span class="o">=</span> <span class="n">window</span>    
+                <span class="n">server_thread</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">get_messages_to_ctr</span><span class="p">,</span>
+                                                <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">_process_received_data</span><span class="p">,</span> <span class="n">remote</span><span class="p">,</span> <span class="n">host_ctr</span><span class="p">,</span> <span class="n">port_ctr</span><span class="p">,</span>
+                                                <span class="n">callback_args</span><span class="p">,),</span>
+                                                <span class="n">daemon</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">server_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+                <span class="c1"># Rerout print for ctr server to capture data in remote case</span>
+                <span class="k">if</span> <span class="n">remote</span><span class="p">:</span>
+                    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">.1</span><span class="p">)</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">NewStdout</span><span class="p">(</span><span class="s2">&quot;mock&quot;</span><span class="p">,</span>  <span class="n">target_node</span><span class="o">=</span><span class="s2">&quot;dummy_ctr&quot;</span><span class="p">,</span> <span class="n">terminal_print</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            
+        <span class="c1">############################################################</span>
+        <span class="c1"># Main Window -&gt; Run neurobooth session</span>
+        <span class="c1">############################################################</span>
+
+        <span class="c1"># Start servers on STM, ACQ</span>
+        <span class="k">elif</span> <span class="n">event</span> <span class="o">==</span> <span class="s2">&quot;-init_servs-&quot;</span><span class="p">:</span>
+            <span class="n">window</span><span class="p">[</span><span class="s1">&#39;-init_servs-&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">Update</span><span class="p">(</span><span class="n">button_color</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="s1">&#39;red&#39;</span><span class="p">))</span>
+            <span class="n">event</span><span class="p">,</span> <span class="n">values</span> <span class="o">=</span> <span class="n">window</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mf">.1</span><span class="p">)</span>
+            <span class="n">ctr_rec</span><span class="o">.</span><span class="n">start_servers</span><span class="p">(</span><span class="n">nodes</span><span class="o">=</span><span class="n">nodes</span><span class="p">,</span> <span class="n">remote</span><span class="o">=</span><span class="n">remote</span><span class="p">,</span> <span class="n">conn</span><span class="o">=</span><span class="n">conn</span><span class="p">)</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Turn on devices and start LSL outlet stream</span>
+        <span class="k">elif</span> <span class="n">event</span> <span class="o">==</span> <span class="s1">&#39;-Connect-&#39;</span><span class="p">:</span>
+            <span class="n">window</span><span class="p">[</span><span class="s1">&#39;-Connect-&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">Update</span><span class="p">(</span><span class="n">button_color</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="s1">&#39;red&#39;</span><span class="p">))</span>
+            <span class="n">event</span><span class="p">,</span> <span class="n">values</span> <span class="o">=</span> <span class="n">window</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mf">.1</span><span class="p">)</span>
+
+            <span class="n">vidf_mrkr</span> <span class="o">=</span> <span class="n">marker_stream</span><span class="p">(</span><span class="s1">&#39;videofiles&#39;</span><span class="p">)</span>
+            <span class="c1"># Create event to capture outlet_id</span>
+            <span class="n">window</span><span class="o">.</span><span class="n">write_event_value</span><span class="p">(</span><span class="s1">&#39;-OUTLETID-&#39;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;[&#39;</span><span class="si">{</span><span class="n">vidf_mrkr</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;, &#39;</span><span class="si">{</span><span class="n">vidf_mrkr</span><span class="o">.</span><span class="n">outlet_id</span><span class="si">}</span><span class="s2">&#39;]&quot;</span><span class="p">)</span>
+
+            <span class="n">ctr_rec</span><span class="o">.</span><span class="n">prepare_devices</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">collection_id</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">tech_obs_log</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">nodes</span><span class="o">=</span><span class="n">nodes</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Connecting devices&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Real-time plotting of inlet data.</span>
+        <span class="k">elif</span> <span class="n">event</span> <span class="o">==</span> <span class="s1">&#39;plot&#39;</span><span class="p">:</span>
+            <span class="c1"># if no inlets send event to prepare devices and make popup error</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">inlets</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">window</span><span class="o">.</span><span class="n">write_event_value</span><span class="p">(</span><span class="s1">&#39;-Connect-&#39;</span><span class="p">)</span>
+                <span class="n">sg</span><span class="o">.</span><span class="n">PopupError</span><span class="p">(</span><span class="s1">&#39;No inlet devices detected, preparing. Press plot once prepared&#39;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">plttr</span><span class="o">.</span><span class="n">pltotting_ts</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">plttr</span><span class="o">.</span><span class="n">inlets</span> <span class="o">=</span> <span class="n">inlets</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">plttr</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">inlets</span><span class="p">)</span>
+
+        <span class="c1"># Start task presentation.</span>
+        <span class="k">elif</span> <span class="n">event</span> <span class="o">==</span> <span class="s1">&#39;Start&#39;</span><span class="p">:</span>
+            <span class="n">tasks</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">values</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="s2">&quot;task&quot;</span> <span class="ow">in</span> <span class="n">k</span> <span class="ow">and</span> <span class="n">v</span> <span class="o">==</span> <span class="kc">True</span><span class="p">]</span>
+                    
+            <span class="n">window</span><span class="p">[</span><span class="s1">&#39;Start&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">Update</span><span class="p">(</span><span class="n">button_color</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="s1">&#39;yellow&#39;</span><span class="p">))</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tasks</span><span class="p">):</span>
+                <span class="n">running_task</span> <span class="o">=</span> <span class="s2">&quot;-&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tasks</span><span class="p">)</span>  <span class="c1"># task_name can be list of task1-task2-task3</span>
+                <span class="n">ctr_rec</span><span class="o">.</span><span class="n">task_presentation</span><span class="p">(</span><span class="n">running_task</span><span class="p">,</span> <span class="n">sess_info</span><span class="p">[</span><span class="s1">&#39;subject_id&#39;</span><span class="p">],</span> <span class="n">node</span><span class="o">=</span><span class="n">nodes</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">steps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;task_started&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sg</span><span class="o">.</span><span class="n">PopupError</span><span class="p">(</span><span class="s1">&#39;No task selected&#39;</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">event</span> <span class="o">==</span> <span class="s2">&quot;Pause tasks&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;task_started&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">steps</span><span class="p">:</span>
+                <span class="n">sg</span><span class="o">.</span><span class="n">PopupError</span><span class="p">(</span><span class="s1">&#39;Tasks not started&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ctr_rec</span><span class="o">.</span><span class="n">message_presentation</span><span class="p">(</span><span class="s2">&quot;pause tasks&quot;</span><span class="p">,</span> <span class="n">nodes</span><span class="p">)</span>
+                <span class="n">resp</span> <span class="o">=</span> <span class="n">sg</span><span class="o">.</span><span class="n">Popup</span><span class="p">(</span><span class="s1">&#39;The next task will be paused&#39;</span><span class="p">,</span> <span class="n">custom_text</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;Continue tasks&#39;</span><span class="p">,</span> <span class="s1">&#39;Stop tasks&#39;</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">resp</span> <span class="o">==</span> <span class="s1">&#39;Continue tasks&#39;</span><span class="p">:</span>
+                    <span class="n">ctr_rec</span><span class="o">.</span><span class="n">message_presentation</span><span class="p">(</span><span class="s2">&quot;unpause tasks&quot;</span><span class="p">,</span> <span class="n">nodes</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">resp</span> <span class="o">==</span> <span class="s1">&#39;Stop tasks&#39;</span><span class="p">:</span>
+                    <span class="n">ctr_rec</span><span class="o">.</span><span class="n">message_presentation</span><span class="p">(</span><span class="s2">&quot;stop tasks&quot;</span><span class="p">,</span> <span class="n">nodes</span><span class="p">)</span>
+
+        <span class="c1"># Save notes to a txt</span>
+        <span class="k">elif</span> <span class="n">event</span> <span class="o">==</span> <span class="s2">&quot;_save_notes_&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;_notes_taskname_&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                <span class="n">sg</span><span class="o">.</span><span class="n">PopupError</span><span class="p">(</span><span class="s1">&#39;Pressed saving notes without task, select one in the dropdown list&#39;</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="n">write_task_notes</span><span class="p">(</span><span class="n">subject_id_date</span><span class="p">,</span> <span class="n">staff_id</span><span class="p">,</span> <span class="n">values</span><span class="p">[</span><span class="s1">&#39;_notes_taskname_&#39;</span><span class="p">],</span> <span class="n">values</span><span class="p">[</span><span class="s1">&#39;notes&#39;</span><span class="p">])</span>
+            <span class="n">window</span><span class="p">[</span><span class="s2">&quot;notes&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">Update</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Shut down the other servers and stops plotting</span>
+        <span class="k">elif</span> <span class="n">event</span> <span class="o">==</span> <span class="s1">&#39;Shut Down&#39;</span> <span class="ow">or</span> <span class="n">event</span> <span class="o">==</span> <span class="n">sg</span><span class="o">.</span><span class="n">WINDOW_CLOSED</span><span class="p">:</span>
+            <span class="n">plttr</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+            <span class="n">ctr_rec</span><span class="o">.</span><span class="n">shut_all</span><span class="p">(</span><span class="n">nodes</span><span class="o">=</span><span class="n">nodes</span><span class="p">)</span>
+            <span class="k">break</span>
+        
+
+        <span class="c1">##################################################################################</span>
+        <span class="c1"># Thread events from process_received_data -&gt; received messages from other servers</span>
+        <span class="c1">##################################################################################</span>
+        
+        <span class="n">out</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">exit_flag</span><span class="o">=</span><span class="n">exit_flag</span><span class="p">,</span>  <span class="c1"># where to break</span>
+            <span class="n">break_</span> <span class="o">=</span> <span class="n">break_</span><span class="p">,</span>  <span class="c1"># break loop if True                </span>
+            <span class="n">obs_log_id</span> <span class="o">=</span> <span class="n">obs_log_id</span><span class="p">,</span> 
+            <span class="n">t_obs_id</span> <span class="o">=</span> <span class="n">t_obs_id</span><span class="p">,</span> 
+            <span class="n">task_id</span> <span class="o">=</span> <span class="n">task_id</span><span class="p">,</span>
+            <span class="n">rec_fname</span> <span class="o">=</span> <span class="n">rec_fname</span><span class="p">,</span> <span class="c1"># lsl file name</span>
+            <span class="n">session</span> <span class="o">=</span> <span class="n">session</span><span class="p">,</span>                   
+            <span class="n">vidf_mrkr</span> <span class="o">=</span> <span class="n">vidf_mrkr</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">ctr_event_handler</span><span class="p">(</span><span class="n">window</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">subject_id_date</span><span class="p">,</span> <span class="n">statecolors</span><span class="o">=</span><span class="n">statecolors</span><span class="p">,</span> <span class="n">stream_ids</span><span class="o">=</span><span class="n">stream_ids</span><span class="p">,</span>
+                     <span class="n">inlets</span><span class="o">=</span><span class="n">inlets</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">out</span><span class="p">)</span>
+        <span class="n">obs_log_id</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="s1">&#39;obs_log_id&#39;</span><span class="p">]</span>
+        <span class="n">t_obs_id</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="s1">&#39;t_obs_id&#39;</span><span class="p">]</span>
+        <span class="n">task_id</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="s1">&#39;task_id&#39;</span><span class="p">]</span>
+        <span class="n">rec_fname</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="s1">&#39;rec_fname&#39;</span><span class="p">]</span>
+        <span class="n">session</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="s1">&#39;session&#39;</span><span class="p">]</span>
+        <span class="n">vidf_mrkr</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="s1">&#39;vidf_mrkr&#39;</span><span class="p">]</span>
+        
+    <span class="c1">##################################################################################</span>
+    <span class="c1"># Conditionals handling inlets for plotting and recording</span>
+    <span class="c1">##################################################################################</span>
+    
+        <span class="c1"># Print LSL inlet names in GUI</span>
+        <span class="k">if</span> <span class="n">inlet_keys</span> <span class="o">!=</span> <span class="nb">list</span><span class="p">(</span><span class="n">inlets</span><span class="p">):</span>
+            <span class="n">inlet_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">inlets</span><span class="p">)</span>
+            <span class="n">window</span><span class="p">[</span><span class="s1">&#39;inlet_State&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">inlet_keys</span><span class="p">))</span>
+
+    <span class="n">window</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">remote</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">terminal</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">window</span><span class="p">[</span><span class="s1">&#39;-OUTPUT-&#39;</span><span class="p">]</span><span class="o">.</span><span class="fm">__del__</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Session terminated&quot;</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">ctr_event_handler</span><span class="p">(</span><span class="n">window</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">subject_id</span><span class="p">,</span> <span class="n">statecolors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stream_ids</span><span class="o">=</span><span class="p">{},</span>
+                     <span class="n">inlets</span><span class="o">=</span><span class="p">{},</span> <span class="n">out</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Handles events from ctr server thread</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    window : callable</span>
+<span class="sd">        pysimple gui window</span>
+<span class="sd">    event : str</span>
+<span class="sd">        event name from window.read()</span>
+<span class="sd">    values : dict</span>
+<span class="sd">        values from window.read()</span>
+<span class="sd">    conn : callable</span>
+<span class="sd">        connector object to pgadmin database</span>
+<span class="sd">    subject_id : str</span>
+<span class="sd">        Name of the subject</span>
+<span class="sd">    statecolors : dict, optional</span>
+<span class="sd">        Color of the buttons, by default None</span>
+<span class="sd">    stream_ids : dict, optional</span>
+<span class="sd">        Ids of the lsl streams, by default {}</span>
+<span class="sd">    inlets : dict, optional</span>
+<span class="sd">        Lsl inlets, by default {}</span>
+<span class="sd">    out : dict, optional</span>
+<span class="sd">        Dictionary with variables, by default None</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    out dict</span>
+<span class="sd">        variables from out arg</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">if</span> <span class="n">out</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">exit_flag</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># where to break</span>
+                   <span class="n">break_</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>  <span class="c1"># break loop if True                </span>
+                   <span class="n">obs_log_id</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+                   <span class="n">t_obs_id</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> 
+                   <span class="n">task_id</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                   <span class="n">rec_fname</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="c1"># lsl file name</span>
+                   <span class="n">session</span> <span class="o">=</span> <span class="n">liesl</span><span class="o">.</span><span class="n">Session</span><span class="p">(),</span>                   
+                   <span class="n">vidf_mrkr</span> <span class="o">=</span> <span class="n">marker_stream</span><span class="p">(</span><span class="s1">&#39;videofiles&#39;</span><span class="p">),</span>
+                   <span class="p">)</span>
+
+    <span class="c1"># Update colors for: -init_servs-, -Connect-, Start buttons</span>
+    <span class="k">if</span> <span class="n">event</span> <span class="o">==</span> <span class="s2">&quot;-update_butt-&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">values</span><span class="p">[</span><span class="s1">&#39;-update_butt-&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">statecolors</span><span class="p">):</span>
+            <span class="c1"># 2 colors for init_servers and Connect, 1 connected, 2 connected</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">statecolors</span><span class="p">[</span><span class="n">values</span><span class="p">[</span><span class="s1">&#39;-update_butt-&#39;</span><span class="p">]]):</span>
+                <span class="n">color</span> <span class="o">=</span> <span class="n">statecolors</span><span class="p">[</span><span class="n">values</span><span class="p">[</span><span class="s1">&#39;-update_butt-&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+                <span class="n">window</span><span class="p">[</span><span class="n">values</span><span class="p">[</span><span class="s1">&#39;-update_butt-&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">Update</span><span class="p">(</span><span class="n">button_color</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">color</span><span class="p">))</span>
+
+                <span class="c1"># Signal start LSL session if both servers devices are ready:</span>
+                <span class="k">if</span> <span class="n">values</span><span class="p">[</span><span class="s1">&#39;-update_butt-&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;-Connect-&quot;</span> <span class="ow">and</span> <span class="n">color</span> <span class="o">==</span> <span class="s2">&quot;green&quot;</span><span class="p">:</span>
+                    <span class="n">window</span><span class="o">.</span><span class="n">write_event_value</span><span class="p">(</span><span class="s1">&#39;start_lsl_session&#39;</span><span class="p">,</span> <span class="s1">&#39;none&#39;</span><span class="p">)</span>
+                    
+                    <span class="c1"># Create LSL session</span>
+                    <span class="n">streamargs</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">n</span><span class="p">}</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">inlets</span><span class="p">)]</span>
+                    <span class="n">out</span><span class="p">[</span><span class="s2">&quot;session&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">liesl</span><span class="o">.</span><span class="n">Session</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">streamargs</span><span class="o">=</span><span class="n">streamargs</span><span class="p">,</span> <span class="n">mainfolder</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">paths</span><span class="p">[</span><span class="s2">&quot;data_out&quot;</span><span class="p">]</span> <span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;LSL session with: &quot;</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">inlets</span><span class="p">))</span>
+
+                    <span class="k">if</span> <span class="n">out</span><span class="p">[</span><span class="s1">&#39;exit_flag&#39;</span><span class="p">]</span> <span class="o">==</span><span class="s1">&#39;prepared&#39;</span><span class="p">:</span>
+                        <span class="n">out</span><span class="p">[</span><span class="s1">&#39;break_&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                    
+    <span class="c1"># Create LSL inlet stream</span>
+    <span class="k">elif</span> <span class="n">event</span> <span class="o">==</span> <span class="s2">&quot;-OUTLETID-&quot;</span><span class="p">:</span>
+        <span class="c1"># event values -&gt; f&quot;[&#39;{outlet_name}&#39;, &#39;{outlet_id}&#39;]</span>
+        <span class="n">outlet_name</span><span class="p">,</span> <span class="n">outlet_id</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="n">event</span><span class="p">])</span>
+        
+        <span class="c1"># update the inlet if new or different source_id</span>
+        <span class="k">if</span> <span class="n">stream_ids</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">outlet_name</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">outlet_id</span> <span class="o">!=</span> <span class="n">stream_ids</span><span class="p">[</span><span class="n">outlet_name</span><span class="p">]:</span>
+            <span class="n">stream_ids</span><span class="p">[</span><span class="n">outlet_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">outlet_id</span>
+            <span class="n">new_inlet</span> <span class="o">=</span> <span class="n">create_lsl_inlets</span><span class="p">({</span><span class="n">outlet_name</span><span class="p">:</span> <span class="n">outlet_id</span><span class="p">})</span>
+            <span class="n">inlets</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">new_inlet</span><span class="p">)</span>
+
+    <span class="c1"># Signal a task started: record LSL data and update gui</span>
+    <span class="k">elif</span> <span class="n">event</span> <span class="o">==</span> <span class="s1">&#39;task_initiated&#39;</span><span class="p">:</span>
+        <span class="c1"># event values -&gt; f&quot;[&#39;{task_id}&#39;, &#39;{t_obs_id}&#39;, &#39;{tech_obs_log_id}, &#39;{tsk_strt_time}&#39;]</span>
+        <span class="n">task_id</span><span class="p">,</span> <span class="n">t_obs_id</span><span class="p">,</span> <span class="n">obs_log_id</span><span class="p">,</span> <span class="n">tsk_strt_time</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="n">event</span><span class="p">])</span>
+        <span class="n">out</span><span class="p">[</span><span class="s2">&quot;obs_log_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">obs_log_id</span>
+        <span class="n">out</span><span class="p">[</span><span class="s2">&quot;t_obs_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">t_obs_id</span>
+        <span class="n">out</span><span class="p">[</span><span class="s2">&quot;task_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">task_id</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;task initiated: task_id </span><span class="si">{</span><span class="n">task_id</span><span class="si">}</span><span class="s2">, t_obs_id </span><span class="si">{</span><span class="n">t_obs_id</span><span class="si">}</span><span class="s2">, obs_log_id :</span><span class="si">{</span><span class="n">obs_log_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># Start LSL recording</span>
+        <span class="n">rec_fname</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">subject_id</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">tsk_strt_time</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">t_obs_id</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="c1"># Start LSL recording</span>
+        <span class="n">out</span><span class="p">[</span><span class="s2">&quot;rec_fname&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rec_fname</span>
+        <span class="n">out</span><span class="p">[</span><span class="s1">&#39;session&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">start_recording</span><span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="s2">&quot;rec_fname&quot;</span><span class="p">])</span>
+
+        <span class="n">window</span><span class="p">[</span><span class="s2">&quot;task_title&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="s2">&quot;Running Task:&quot;</span><span class="p">)</span>
+        <span class="n">window</span><span class="p">[</span><span class="s2">&quot;task_running&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">task_id</span><span class="p">,</span> <span class="n">background_color</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">)</span>
+        <span class="n">window</span><span class="p">[</span><span class="s1">&#39;Start&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">Update</span><span class="p">(</span><span class="n">button_color</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="s1">&#39;red&#39;</span><span class="p">))</span>
+
+    <span class="c1"># Signal a task ended: stop LSL recording and update gui</span>
+    <span class="k">elif</span> <span class="n">event</span> <span class="o">==</span> <span class="s1">&#39;task_finished&#39;</span><span class="p">:</span>
+        <span class="n">task_id</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">event</span><span class="p">]</span>
+        
+        <span class="c1"># Stop LSL recording</span>
+        <span class="n">out</span><span class="p">[</span><span class="s1">&#39;session&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">stop_recording</span><span class="p">()</span>
+
+        <span class="n">window</span><span class="p">[</span><span class="s2">&quot;task_running&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">task_id</span><span class="p">,</span> <span class="n">background_color</span><span class="o">=</span><span class="s2">&quot;green&quot;</span><span class="p">)</span>
+        <span class="n">window</span><span class="p">[</span><span class="s1">&#39;Start&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">Update</span><span class="p">(</span><span class="n">button_color</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="s1">&#39;green&#39;</span><span class="p">))</span>
+
+        <span class="n">xdf_fname</span> <span class="o">=</span> <span class="n">get_xdf_name</span><span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="s1">&#39;session&#39;</span><span class="p">],</span> <span class="n">out</span><span class="p">[</span><span class="s2">&quot;rec_fname&quot;</span><span class="p">])</span>
+        <span class="n">split_sens_files</span><span class="p">(</span><span class="n">xdf_fname</span><span class="p">,</span> <span class="n">out</span><span class="p">[</span><span class="s2">&quot;obs_log_id&quot;</span><span class="p">],</span> <span class="n">out</span><span class="p">[</span><span class="s2">&quot;t_obs_id&quot;</span><span class="p">],</span> <span class="n">conn</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">out</span><span class="p">[</span><span class="s1">&#39;exit_flag&#39;</span><span class="p">]</span> <span class="o">==</span><span class="s1">&#39;task_end&#39;</span><span class="p">:</span>
+            <span class="n">out</span><span class="p">[</span><span class="s1">&#39;break_&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="c1"># Send a marker string with the name of the new video file created</span>
+    <span class="k">elif</span> <span class="n">event</span> <span class="o">==</span> <span class="s2">&quot;-new_filename-&quot;</span><span class="p">:</span>            
+        <span class="n">out</span><span class="p">[</span><span class="s2">&quot;vidf_mrkr&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">push_sample</span><span class="p">([</span><span class="n">values</span><span class="p">[</span><span class="n">event</span><span class="p">]])</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;pushed videfilename mark </span><span class="si">{</span><span class="n">values</span><span class="p">[</span><span class="n">event</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;The starting point of Neurobooth&quot;&quot;&quot;</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">OptionParser</span><span class="p">()</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;-r&quot;</span><span class="p">,</span> <span class="s2">&quot;--remote&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;remote&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                      <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Access database using remote connection&quot;</span><span class="p">)</span>
+    <span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+    <span class="n">gui</span><span class="p">(</span><span class="n">remote</span><span class="o">=</span><span class="n">options</span><span class="o">.</span><span class="n">remote</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2021, Neurobooth Developers.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.0.2.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>
